@@ -54,6 +54,9 @@ poetry run bash scripts/bash/initial_setup_run_once.sh
 11. Build the database, this can take up to an hour the first time.
 
 ```shell
+export PYTHONPATH=`pwd`
+poetry run bash scripts/bash/build_db.sh
+python db/bold_definitions/extract_bold_definitions.py
 poetry run bash scripts/bash/build_db.sh
 ```
 
@@ -62,7 +65,8 @@ That should create an SQLite database `dpd.db` in the root folder which can be a
 12. Now, generate Pali grammar dictionar
 
 ```shell
-env PYTHONPATH=`pwd`
+mkdir pali_grammar/output
+mkdir pali_grammar/share
 python pali_grammar/pali_grammar.py
 ```
 
