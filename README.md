@@ -1,6 +1,6 @@
 # pali_grammar
 
-Pali grammar dictionary based on Digital Pali Dictionary
+Dictionary of Pali grammatical inflections with grammatical symbols, usage, meaning and construction, based on Digital Pali Dictionary
 
 1. To generate, first clone DPD
 
@@ -32,7 +32,7 @@ git submodule init && git submodule update
 
 7. Install [uv](https://docs.astral.sh/uv/) for your operating system
 
-8. Install all the dependencies with poetry
+8. Install all the dependencies with uv
 
 ```shell
 uv sync
@@ -48,15 +48,15 @@ uv run bash scripts/bash/initial_setup_run_once.sh
 
 ```shell
 # export PYTHONPATH=`pwd`
-cd resources/deconstructor_output
-tar xvf deconstructor_output.json.tar.gz
-cd ../..
+# cd resources/deconstructor_output
+# tar xvf deconstructor_output.json.tar.gz
+# cd ../..
 uv run bash scripts/bash/initial_build_db.sh
 ```
 
 That should create an SQLite database `dpd.db` in the root folder which can be accessed with [DB Browser](https://sqlitebrowser.org/), [DBeaver](https://dbeaver.io/), through [SQLAlechmy](https://www.sqlalchemy.org/) or your preferred method.
 
-12. Now, generate Pali grammar dictionar
+12. Now, generate Pali grammar dictionary
 
 ```shell
 mkdir pali_grammar/output
