@@ -47,10 +47,6 @@ uv run bash scripts/bash/initial_setup_run_once.sh
 11. Build the database, this can take up to an hour the first time.
 
 ```shell
-# export PYTHONPATH=`pwd`
-# cd resources/deconstructor_output
-# tar xvf deconstructor_output.json.tar.gz
-# cd ../..
 uv run bash scripts/bash/initial_build_db.sh
 ```
 
@@ -61,7 +57,7 @@ That should create an SQLite database `dpd.db` in the root folder which can be a
 ```shell
 mkdir pali_grammar/output
 mkdir pali_grammar/share
-uv run python pali_grammar/pali_grammar.py
+uv run python pali_grammar/pali-grammar.py
 ```
 
 The dictionaries are located in `pali_grammar/share` folder. Copy them to your favourite dictionary program in the same way as DPD dictionaries.

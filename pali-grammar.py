@@ -1,5 +1,3 @@
-import html
-from tkinter.constants import W
 #!/usr/bin/env python3
 
 """Compile HTML table of all grammatical possibilities of every inflected word-form."""
@@ -7,13 +5,7 @@ from tkinter.constants import W
 from mako.template import Template
 
 from db.db_helpers import get_db_session
-from db.models import Lookup, DpdHeadword
-
-from dps.scripts.rus_exporter.paths_ru import RuPaths
-from dps.scripts.rus_exporter.tools_for_ru_exporter import (
-    ru_replace_abbreviations,
-    load_abbreviations_dict
-)
+from db.models import DpdHeadword, Lookup
 
 from tools.configger import config_test
 from tools.css_manager import CSSManager
@@ -23,8 +15,8 @@ from tools.mdict_exporter import export_to_mdict
 from tools.niggahitas import add_niggahitas
 from tools.paths import ProjectPaths
 from tools.printer import printer as pr
+
 from pathlib import Path
-import json
 
 to_symbol = {
     "nom": "①",
@@ -82,15 +74,7 @@ class ProgData:
         else:
             self.make_mdict = False
 
-        if config_test("exporter", "language", "en"):
-            self.lang = "en"
-        elif config_test("exporter", "language", "ru"):
-            self.lang = "ru"
-        else:
-            raise ValueError("Invalid language parameter")
-
         self.pth = ProjectPaths()
-        self.rupth = RuPaths()
         self.db_session = get_db_session(self.pth.dpd_db_path)
 
         self.grammar_css_path = Path("./pali_grammar/grammar.css")
@@ -106,7 +90,7 @@ class ProgData:
         self.pth.share_dir = Path("./pali_grammar/share")
 
         # the grammar dictionaries
-        self.html_dict: dict[str, str] = {} # Renamed from grammar_dict_html
+        self.html_dict: dict[str, str] = {}  # Renamed from grammar_dict_html
 
         # goldendict and mdict data_list
         self.dict_data: list[DictEntry] = []
@@ -120,13 +104,13 @@ class ProgData:
 
 def main():
     pr.tic()
-    pr.title("exporting Pali grammar dictionary")
+    pr.title("exporting Pāḷi grammar dictionary")
 
     g = ProgData()
 
-    generate_html_from_lookup(g) # New function replaces old ones
+    generate_html_from_lookup(g)  # New function replaces old ones
 
-    g.close_db() # Close db session when done
+    g.close_db()  # Close db session when done
 
     make_data_lists(g)
     prepare_gd_mdict_and_export(g)
@@ -147,10 +131,11 @@ def generate_html_from_lookup(g: ProgData):
     pr.green("querying database")
 
     # Query the Lookup table for entries with grammar data
-    lookup_results = g.db_session.query(Lookup).filter(
-        Lookup.grammar.is_not(None),
-        Lookup.grammar != ""
-    ).all()
+    lookup_results = (
+        g.db_session.query(Lookup)
+        .filter(Lookup.grammar.is_not(None), Lookup.grammar != "")
+        .all()
+    )
 
     pr.yes(f"{len(lookup_results)}")
 
@@ -172,8 +157,10 @@ def generate_html_from_lookup(g: ProgData):
     # Process each lookup entry
     for counter, lookup_entry in enumerate(lookup_results):
         inflected_word = lookup_entry.lookup_key
-        grammar_data_list = lookup_entry.grammar_unpack # [(headword, pos, grammar_str)])
-        headwords = json.loads(lookup_entry.headwords)
+        grammar_data_list = (
+            lookup_entry.grammar_unpack
+        )  # [(headword, pos, grammar_str)]
+        headwords = lookup_entry.headwords_unpack
         words = [g.db_session.query(DpdHeadword).filter(
             DpdHeadword.id == id
         ).first() for id in headwords]
@@ -197,9 +184,7 @@ def generate_html_from_lookup(g: ProgData):
             grammatical_categories = []
             if grammar_str.startswith("reflx"):
                 grammatical_categories.append(
-                    grammar_str.split()[0]
-                    + " "
-                    + grammar_str.split()[1]
+                    grammar_str.split()[0] + " " + grammar_str.split()[1]
                 )
                 grammatical_categories += grammar_str.split()[2:]
                 for grammatical_category in grammatical_categories:
@@ -229,40 +214,6 @@ def generate_html_from_lookup(g: ProgData):
         if counter % 10000 == 0:
             pr.counter(counter, len(lookup_results), inflected_word)
 
-    # Handle Russian translation if needed
-    if g.lang == "ru":
-        pr.green("replacing abbreviations: en > ru")
-        print_counter = 0
-
-        # Preload abbreviations dictionary and patterns
-        load_abbreviations_dict(g.pth.abbreviations_tsv_path)
-
-        for inflected_word, html_content in html_dict.items():
-            # Split carefully to preserve the header part
-            header_part, table_part = html_content.split("<tbody>", 1)
-            body_part, footer_part = table_part.rsplit("</tbody>", 1)
-
-            html_rows = body_part.split("<tr>")
-            processed_rows = []
-            for i, row in enumerate(html_rows):
-                if row.strip():  # Skip empty strings resulting from split
-                    # Add back the '<tr>' tag for processing
-                    full_row = f"<tr>{row}"
-                    # Replace abbreviations in the row
-                    processed_row = ru_replace_abbreviations(full_row, kind="gram")
-                    # Remove the added '<tr>' tag before storing
-                    processed_rows.append(processed_row.replace("<tr>", "", 1))
-
-            # Join the modified rows back
-            modified_body = "<tr>".join(processed_rows)
-
-            # Reassemble the full HTML
-            html_dict[inflected_word] = f"{header_part}<tbody>{modified_body}</tbody>{footer_part}"
-
-            print_counter += 1
-            if print_counter % 10000 == 0:
-                pr.counter(print_counter, len(html_dict), inflected_word)
-
     g.html_dict = html_dict
     pr.yes(len(g.html_dict))
 
@@ -289,27 +240,15 @@ def make_data_lists(g: ProgData):
 def prepare_gd_mdict_and_export(g: ProgData):
     """Prepare the metadata and export to goldendict & mdict."""
 
-    if g.lang == "en":
-        dict_info = DictInfo(
-            bookname = "Pali Grammar",
-            author = "Bodhirasa (+Chris Tham)",
-            description = "<h3>Pali Grammar</h3><p>Dictionary of Pali grammatical inflections with grammatical symbols, usage, meaning and construction</p>",
-            website = "https://github.com/ChristineTham/pali_grammar",
-            source_lang="pi",
-            target_lang="en",
-        )
-        dict_name = "pali-grammar"
-
-    elif g.lang == "ru":
-        dict_info = DictInfo(
-            bookname="Pali Грамматика",
-            author="Дост. Бодхираса (+Chris Tham)",
-            description="<h3>Pali Грамматика</h3><p>Таблица всех грамматических возможностей, которыми может обладать определенное слово в склонении или спряжении. Для получения дополнительной информации посетите <a href='https://github.com/ChristineTham/pali_grammar' target='_blank'>веб-сайт DPD</a>.</p>",
-            website = "https://github.com/ChristineTham/pali_grammar",
-            source_lang="pi",
-            target_lang="ru",
-        )
-        dict_name = "ru-pali-grammar"
+    dict_info = DictInfo(
+        bookname = "Pali Grammar",
+        author = "Bodhirasa (+Chris Tham)",
+        description = "<h3>Pali Grammar</h3><p>Dictionary of Pali grammatical inflections with grammatical symbols, usage, meaning and construction</p>",
+        website = "https://github.com/ChristineTham/pali_grammar",
+        source_lang="pi",
+        target_lang="en",
+    )
+    dict_name = "pali-grammar"
 
     dict_vars = DictVariables(
         css_paths=[g.pth.dpd_css_and_fonts_path],
@@ -323,7 +262,7 @@ def prepare_gd_mdict_and_export(g: ProgData):
         delete_original=False,
     )
 
-    export_to_goldendict_with_pyglossary(dict_info, dict_vars, g.dict_data, zip_synonyms=False)
+    export_to_goldendict_with_pyglossary(dict_info, dict_vars, g.dict_data)
 
     if g.make_mdict:
         export_to_mdict(dict_info, dict_vars, g.dict_data)
