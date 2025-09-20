@@ -1,0 +1,11 @@
+StarDict's dict ifo file
+version=3.0.0
+bookname=Pali Grammar (pi-en)
+wordcount=186583
+idxfilesize=4095299
+sametypesequence=h
+synwordcount=281439
+author=Bodhirasa (+Chris Tham)
+website=https://github.com/ChristineTham/pali_grammar
+date=2025-09-20T04:31:44
+description=<h3>Pali Grammar</h3><p>Dictionary of Pali grammatical inflections with grammatical symbols, usage, meaning and construction</p>

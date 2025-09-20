@@ -1,0 +1,1 @@
+please see [docs folder](../docs/project_folder_structure.md)
