@@ -59,12 +59,14 @@ to_meaning = {
     "voc": "vocative",
 }
 
+
 def get_symbols(grammar: str):
     if grammar == "in comps":
         return "🆎"
 
-    chunks = grammar.split(' ')
-    return ''.join(map(lambda s: to_symbol.get(s, s), chunks))
+    chunks = grammar.split(" ")
+    return "".join(map(lambda s: to_symbol.get(s, s), chunks))
+
 
 class ProgData:
     def __init__(self) -> None:
@@ -79,13 +81,8 @@ class ProgData:
         self.pth.dpd_grammar_mdx_path = Path("./pali-grammar-mdict.mdx")
         self.pth.grammar_dict_header_templ_path = Path("./grammar_dict_header.html")
         self.pth.grammar_templ_path = Path("./pali_grammar.html")
-        self.pth.grammar_dict_output_dir =  Path("./output")
-        self.pth.grammar_dict_output_html_dir =  Path("./output/html")
-        self.pth.grammar_dict_pickle_path =  Path("./output/grammar_dict_pickle")
-        self.pth.grammar_dict_tsv_path =  Path("./output/grammar_dict.tsv")
         self.pth.share_dir = Path("./share")
 
-        self.pth.grammar_dict_output_dir.mkdir(parents=True, exist_ok=True)
         self.pth.share_dir.mkdir(parents=True, exist_ok=True)
 
         # the grammar dictionaries
@@ -144,7 +141,9 @@ def generate_html_from_lookup(g: ProgData):
 
     # create the header from a template
     header_templ = Template(filename=str(g.pth.grammar_dict_header_templ_path))
-    html_header = render_header_templ(g.pth, css=str(g.grammar_css_path), js="", header_templ=header_templ)
+    html_header = render_header_templ(
+        g.pth, css=str(g.grammar_css_path), js="", header_templ=header_templ
+    )
 
     # Add variables and fonts to header
     css_manager = CSSManager()
@@ -160,9 +159,10 @@ def generate_html_from_lookup(g: ProgData):
             lookup_entry.grammar_unpack
         )  # [(headword, pos, grammar_str)]
         headwords = lookup_entry.headwords_unpack
-        words = [g.db_session.query(DpdHeadword).filter(
-            DpdHeadword.id == id
-        ).first() for id in headwords]
+        words = [
+            g.db_session.query(DpdHeadword).filter(DpdHeadword.id == id).first()
+            for id in headwords
+        ]
         mlist = "<ol>"
         for word in words:
             mlist += f"<li><i>{word.lemma_1}</i>"
@@ -199,7 +199,9 @@ def generate_html_from_lookup(g: ProgData):
                     html_line += f"<td>{grammatical_category}</td>"
 
             gsymbol = get_symbols(grammar_str)
-            case_usage = ''.join([val for key, val in to_meaning.items() if key in grammar_str])
+            case_usage = "".join(
+                [val for key, val in to_meaning.items() if key in grammar_str]
+            )
 
             html_line += f"<td>{case_usage}</td>"
             html_line += f"<td>{gsymbol}({headword})</td>"
@@ -207,7 +209,14 @@ def generate_html_from_lookup(g: ProgData):
             html_lines.append(html_line)
 
         # Assemble the full HTML for the entry
-        entry_html = html_header + html_header1 + mlist + html_header2 +"".join(html_lines) + "</tbody></table></div></body></html>"
+        entry_html = (
+            html_header
+            + html_header1
+            + mlist
+            + html_header2
+            + "".join(html_lines)
+            + "</tbody></table></div></body></html>"
+        )
         html_dict[inflected_word] = entry_html
 
         if counter % 10000 == 0:
@@ -240,10 +249,10 @@ def prepare_gd_mdict_and_export(g: ProgData):
     """Prepare the metadata and export to goldendict & mdict."""
 
     dict_info = DictInfo(
-        bookname = "Pali Grammar",
-        author = "Bodhirasa (+Chris Tham)",
-        description = "<h3>Pali Grammar</h3><p>Dictionary of Pali grammatical inflections with grammatical symbols, usage, meaning and construction</p>",
-        website = "https://github.com/ChristineTham/pali_grammar",
+        bookname="Pali Grammar",
+        author="Bodhirasa (+Chris Tham)",
+        description="<h3>Pali Grammar</h3><p>Dictionary of Pali grammatical inflections with grammatical symbols, usage, meaning and construction</p>",
+        website="https://github.com/ChristineTham/pali_grammar",
         source_lang="pi",
         target_lang="en",
     )

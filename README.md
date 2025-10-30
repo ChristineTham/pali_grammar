@@ -32,4 +32,10 @@ uv run main.py
 
 The dictionaries are located in `share` folder. Copy them to your favourite dictionary program in the same way as DPD dictionaries.
 
+6. Generate custom Cspell dictionary
+
+```shell
+uv run cspell.py
+```
+
 Enjoy!
