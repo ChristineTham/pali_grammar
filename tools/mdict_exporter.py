@@ -37,7 +37,12 @@ def export_to_mdict(
     """Export to MDict"""
 
     pr.green_title("exporting to mdict")
-    g = ProgData(dict_info, dict_var, dict_data, h3_header)
+    # Clone entries so modification of definition_html doesn't mutate caller data
+    cloned_data = [
+        DictEntry(d.word, d.definition_html, d.definition_plain, list(d.synonyms))
+        for d in dict_data
+    ]
+    g = ProgData(dict_info, dict_var, cloned_data, h3_header)
 
     replace_goldendict(g)
 

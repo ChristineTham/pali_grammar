@@ -174,3 +174,4 @@ output/
 share/
 
 dpd.db*
+.DS_Store

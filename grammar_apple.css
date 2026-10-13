@@ -1,0 +1,111 @@
+@charset "UTF-8";
+@namespace d url(http://www.apple.com/DTDs/DictionaryService-1.0.rng);
+
+/* Apple Dictionary Stylesheet for Pali Grammar */
+
+d|entry {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Lucida Grande", "Noto Sans", sans-serif;
+    line-height: 1.45;
+    color: #1d1d1f;
+}
+
+h1 {
+    font-size: 1.35em;
+    font-weight: 700;
+    margin-top: 0.2em;
+    margin-bottom: 0.35em;
+    color: #111111;
+}
+
+h3 {
+    font-size: 1.15em;
+    margin-top: 0.3em;
+    margin-bottom: 0.2em;
+}
+
+.grammar_dict_entry {
+    margin: 0;
+    padding: 0;
+}
+
+ol {
+    margin-top: 0.25em;
+    margin-bottom: 0.5em;
+    padding-left: 1.4em;
+}
+
+li {
+    margin-bottom: 0.25em;
+    line-height: 1.4;
+}
+
+li i {
+    font-style: italic;
+}
+
+li b {
+    font-weight: 600;
+}
+
+div.grammar_dict {
+    border: 1px solid #d4839e;
+    border-radius: 6px;
+    line-height: 1.4;
+    overflow-x: auto;
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+    text-align: left;
+}
+
+table.grammar_dict {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.9em;
+    margin: 0;
+    text-align: center;
+    vertical-align: middle;
+}
+
+table.grammar_dict th {
+    background-color: rgba(212, 131, 158, 0.15);
+    border: 1px solid #d4839e;
+    padding: 3px 6px;
+    font-weight: 600;
+    color: #333333;
+}
+
+table.grammar_dict td {
+    padding: 3px 6px;
+    border: 1px solid #d4839e;
+    color: #222222;
+}
+
+table.grammar_dict td b {
+    font-weight: 600;
+}
+
+/* Dark Mode styling */
+@media (prefers-color-scheme: dark) {
+    d|entry {
+        color: #f5f5f7;
+    }
+
+    h1 {
+        color: #ffffff;
+    }
+
+    div.grammar_dict {
+        border-color: #944b64;
+    }
+
+    table.grammar_dict th {
+        background-color: rgba(148, 75, 100, 0.3);
+        border-color: #944b64;
+        color: #f5f5f7;
+    }
+
+    table.grammar_dict td {
+        border-color: #944b64;
+        color: #ebebef;
+    }
+}

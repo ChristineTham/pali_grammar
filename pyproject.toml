@@ -5,6 +5,7 @@ description = "Dictionary of Pali grammatical inflections with grammatical symbo
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "beautifulsoup4>=4.15.0",
     "lxml>=5.4.0",
     "mako>=1.3.10",
     "pyglossary>=5.0.9",

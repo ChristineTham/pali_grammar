@@ -136,6 +136,13 @@ class ProjectPaths:
         self.dpd_goldendict_dir = base_dir / "exporter/share/dpd/"
         self.dpd_goldendict_zip_path = base_dir / "exporter/share/dpd-goldendict.zip"
         self.dpd_grammar_goldendict_dir = base_dir / "exporter/share/dpd-grammar/"
+        self.dpd_grammar_appledict_dir = base_dir / "exporter/share/dpd-grammar-apple/"
+        self.dpd_grammar_apple_bundle_path = (
+            base_dir / "exporter/share/dpd-grammar.dictionary"
+        )
+        self.dpd_grammar_apple_zip_path = (
+            base_dir / "exporter/share/dpd-grammar-apple.dictionary.zip"
+        )
         self.dpd_mdict_zip_path = base_dir / "exporter/share/dpd-mdict.zip"
         self.dpd_mobi_path = base_dir / "exporter/share/dpd-kindle.mobi"
         self.dpd_variants_goldendict_dir = base_dir / "exporter/share/dpd-variants/"

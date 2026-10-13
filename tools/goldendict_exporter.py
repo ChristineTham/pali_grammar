@@ -68,7 +68,9 @@ class DictVariables:
         font_path: Optional[Path] = None,
         zip_up: bool = False,
         delete_original: bool = False,
+        apple_path: Optional[Path] = None,
     ) -> None:
+        self.dict_name: str = dict_name
         self.css_paths: Optional[list[Path]] = css_paths
         self.js_paths: Optional[list[Path]] = js_paths
 
@@ -86,6 +88,16 @@ class DictVariables:
         self.mdict_mdd_path: Path = md_path.joinpath(f"{dict_name}-mdict").with_suffix(
             ".mdd"
         )
+
+        if apple_path is None:
+            apple_path = gd_path
+        self.apple_path: Path = apple_path
+        self.apple_dir: Path = apple_path.joinpath(f"{dict_name}-apple")
+        self.apple_bundle_path: Path = apple_path.joinpath(f"{dict_name}.dictionary")
+        self.apple_zip_path: Path = apple_path.joinpath(
+            f"{dict_name}-apple.dictionary.zip"
+        )
+
         self.icon_source_path: Optional[Path] = icon_path
 
         if icon_path:
@@ -115,6 +127,7 @@ class DictVariables:
         else:
             self.gd_zip_path = gd_path.joinpath(dict_name).with_suffix(".zip")
             self.md_zip_path = md_path.joinpath(dict_name).with_suffix(".zip")
+
 
 
 def export_to_goldendict_with_pyglossary(

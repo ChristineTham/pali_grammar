@@ -2,11 +2,16 @@
 
 """Compile HTML table of all grammatical possibilities of every inflected word-form."""
 
+import argparse
+from pathlib import Path
+from typing import Optional
+
 from mako.template import Template
 
 from db.db_helpers import get_db_session
 from db.models import DpdHeadword, Lookup
 
+from tools.appledict_exporter import export_to_appledict
 from tools.css_manager import CSSManager
 from tools.goldendict_exporter import DictInfo, DictVariables, DictEntry
 from tools.goldendict_exporter import export_to_goldendict_with_pyglossary
@@ -14,8 +19,6 @@ from tools.mdict_exporter import export_to_mdict
 from tools.niggahitas import add_niggahitas
 from tools.paths import ProjectPaths
 from tools.printer import printer as pr
-
-from pathlib import Path
 
 to_symbol = {
     "nom": "①",
@@ -70,15 +73,25 @@ def get_symbols(grammar: str):
 
 class ProgData:
     def __init__(self) -> None:
+        self.make_goldendict = True
         self.make_mdict = True
+        self.make_appledict = True
+        self.install_appledict = False
+        self.limit: Optional[int] = None
 
         self.pth = ProjectPaths()
         self.db_session = get_db_session(self.pth.dpd_db_path)
 
         self.grammar_css_path = Path("./grammar.css")
+        self.grammar_apple_css_path = Path("./grammar_apple.css")
         self.pth.dpd_grammar_goldendict_dir = Path("./pali-grammar")
         self.pth.dpd_grammar_mdd_path = Path("./pali-grammar-mdict.mdd")
         self.pth.dpd_grammar_mdx_path = Path("./pali-grammar-mdict.mdx")
+        self.pth.dpd_grammar_appledict_dir = Path("./share/pali-grammar-apple")
+        self.pth.dpd_grammar_apple_bundle_path = Path("./share/pali-grammar.dictionary")
+        self.pth.dpd_grammar_apple_zip_path = Path(
+            "./share/pali-grammar-apple.dictionary.zip"
+        )
         self.pth.grammar_dict_header_templ_path = Path("./grammar_dict_header.html")
         self.pth.grammar_templ_path = Path("./pali_grammar.html")
         self.pth.share_dir = Path("./share")
@@ -88,7 +101,7 @@ class ProgData:
         # the grammar dictionaries
         self.html_dict: dict[str, str] = {}  # Renamed from grammar_dict_html
 
-        # goldendict and mdict data_list
+        # goldendict, mdict, and appledict data_list
         self.dict_data: list[DictEntry] = []
 
     def close_db(self):
@@ -98,11 +111,85 @@ class ProgData:
         self.db_session.commit()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Compile Pali Grammar dictionary for GoldenDict, MDict, and Apple Dictionary."
+    )
+    parser.add_argument(
+        "--apple-only",
+        action="store_true",
+        help="Export only to Apple Dictionary",
+    )
+    parser.add_argument(
+        "--goldendict-only",
+        action="store_true",
+        help="Export only to GoldenDict",
+    )
+    parser.add_argument(
+        "--mdict-only",
+        action="store_true",
+        help="Export only to MDict",
+    )
+    parser.add_argument(
+        "--no-apple",
+        action="store_true",
+        help="Skip Apple Dictionary export",
+    )
+    parser.add_argument(
+        "--no-goldendict",
+        action="store_true",
+        help="Skip GoldenDict export",
+    )
+    parser.add_argument(
+        "--no-mdict",
+        action="store_true",
+        help="Skip MDict export",
+    )
+    parser.add_argument(
+        "--install",
+        action="store_true",
+        help="Install compiled Apple Dictionary bundle into ~/Library/Dictionaries",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Limit number of entries processed (useful for testing)",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     pr.tic()
     pr.title("exporting Pāḷi grammar dictionary")
 
     g = ProgData()
+
+    if args.apple_only:
+        g.make_goldendict = False
+        g.make_mdict = False
+        g.make_appledict = True
+    elif args.goldendict_only:
+        g.make_goldendict = True
+        g.make_mdict = False
+        g.make_appledict = False
+    elif args.mdict_only:
+        g.make_goldendict = False
+        g.make_mdict = True
+        g.make_appledict = False
+    else:
+        if args.no_apple:
+            g.make_appledict = False
+        if args.no_goldendict:
+            g.make_goldendict = False
+        if args.no_mdict:
+            g.make_mdict = False
+
+    if args.install:
+        g.install_appledict = True
+    if args.limit:
+        g.limit = args.limit
 
     generate_html_from_lookup(g)  # New function replaces old ones
 
@@ -127,13 +214,18 @@ def generate_html_from_lookup(g: ProgData):
     pr.green("querying database")
 
     # Query the Lookup table for entries with grammar data
-    lookup_results = (
+    query = (
         g.db_session.query(Lookup)
         .filter(Lookup.grammar.is_not(None), Lookup.grammar != "")
-        .all()
     )
+    if g.limit is not None and g.limit > 0:
+        query = query.limit(g.limit)
+    lookup_results = query.all()
 
-    pr.yes(f"{len(lookup_results)}")
+    pr.green("preloading headwords into memory")
+    all_headwords = g.db_session.query(DpdHeadword).all()
+    headwords_dict = {w.id: w for w in all_headwords}
+    pr.yes(f"{len(headwords_dict)}")
 
     pr.green_title("compiling html")
 
@@ -160,8 +252,9 @@ def generate_html_from_lookup(g: ProgData):
         )  # [(headword, pos, grammar_str)]
         headwords = lookup_entry.headwords_unpack
         words = [
-            g.db_session.query(DpdHeadword).filter(DpdHeadword.id == id).first()
+            headwords_dict[id]
             for id in headwords
+            if id in headwords_dict
         ]
         mlist = "<ol>"
         for word in words:
@@ -246,7 +339,7 @@ def make_data_lists(g: ProgData):
 
 
 def prepare_gd_mdict_and_export(g: ProgData):
-    """Prepare the metadata and export to goldendict & mdict."""
+    """Prepare the metadata and export to goldendict, mdict & apple dictionary."""
 
     dict_info = DictInfo(
         bookname="Pali Grammar",
@@ -268,12 +361,22 @@ def prepare_gd_mdict_and_export(g: ProgData):
         font_path=g.pth.fonts_dir,
         zip_up=True,
         delete_original=False,
+        apple_path=g.pth.share_dir,
     )
 
-    export_to_goldendict_with_pyglossary(dict_info, dict_vars, g.dict_data)
+    if g.make_goldendict:
+        export_to_goldendict_with_pyglossary(dict_info, dict_vars, g.dict_data)
 
     if g.make_mdict:
         export_to_mdict(dict_info, dict_vars, g.dict_data)
+
+    if g.make_appledict:
+        export_to_appledict(
+            dict_info,
+            dict_vars,
+            g.dict_data,
+            install=g.install_appledict,
+        )
 
 
 if __name__ == "__main__":
