@@ -32,10 +32,25 @@ That should create an SQLite database `dpd.db` in the project folder which can b
 uv run main.py
 ```
 
-This compiles dictionaries in three formats:
+This compiles dictionaries in four formats:
 - **GoldenDict**: `share/pali-grammar` and `share/pali-grammar-goldendict.zip`
 - **MDict**: `share/pali-grammar-mdict.mdx`, `.mdd`, and `share/pali-grammar-mdict.zip`
 - **Apple Dictionary**: `share/pali-grammar.dictionary` and `share/pali-grammar-apple.dictionary.zip` (plus XML sources in `share/pali-grammar-apple/`)
+- **Static Web Shards**: `share/web_dict/` (or directly into `tipitaka2500.github.io/public/data/dpd/`) with balanced range shards and `manifest.json` for instant binary-search hover lookup on the web.
+
+#### Static Web Sharded Dictionary (for tipitaka2500.github.io)
+
+Export lightweight, balanced range-sharded JSON files with O(1) binary-search manifest for static web hosting:
+
+```shell
+uv run export_web_dict.py --out-dir ../tipitaka2500.github.io/public/data/dpd
+```
+
+Or via `main.py`:
+
+```shell
+uv run main.py --web --web-dir ../tipitaka2500.github.io/public/data/dpd
+```
 
 #### Apple Dictionary (macOS native Dictionary app)
 
@@ -67,6 +82,8 @@ uv run main.py [options]
 - `--apple-only`: Build only the Apple Dictionary
 - `--goldendict-only`: Build only GoldenDict
 - `--mdict-only`: Build only MDict
+- `--web`: Export sharded static web dictionary to `share/web_dict` (or `--web-dir`)
+- `--web-dir PATH`: Target directory for static web dictionary export
 - `--no-apple`: Skip Apple Dictionary build
 - `--install`: Automatically install the compiled `.dictionary` bundle into `~/Library/Dictionaries/`
 - `--limit N`: Limit processing to `N` entries (convenient for quick tests)

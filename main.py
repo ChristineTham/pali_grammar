@@ -151,6 +151,17 @@ def parse_args() -> argparse.Namespace:
         help="Install compiled Apple Dictionary bundle into ~/Library/Dictionaries",
     )
     parser.add_argument(
+        "--web",
+        action="store_true",
+        help="Export static web dictionary to share/web_dict (or --web-dir)",
+    )
+    parser.add_argument(
+        "--web-dir",
+        type=Path,
+        default=Path("./share/web_dict"),
+        help="Directory to write static web dictionary shards",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=None,
@@ -190,6 +201,13 @@ def main():
         g.install_appledict = True
     if args.limit:
         g.limit = args.limit
+
+    if args.web:
+        from export_web_dict import export_web_dict
+
+        export_web_dict(out_dir=args.web_dir, limit=args.limit)
+        pr.toc()
+        return
 
     generate_html_from_lookup(g)  # New function replaces old ones
 
