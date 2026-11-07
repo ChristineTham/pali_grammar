@@ -84,6 +84,9 @@ uv run main.py [options]
 - `--mdict-only`: Build only MDict
 - `--web`: Export sharded static web dictionary to `share/web_dict` (or `--web-dir`)
 - `--web-dir PATH`: Target directory for static web dictionary export
+- `--chunk-size N`: Words per static web shard (default: 1500, ~20KB gzipped)
+- `--deconstructor-tar PATH`: Path to `deconstructor_output.json.tar.gz` (auto-downloaded if not present)
+- `--no-deconstructor`: Skip compound and sandhi deconstructor entries
 - `--no-apple`: Skip Apple Dictionary build
 - `--install`: Automatically install the compiled `.dictionary` bundle into `~/Library/Dictionaries/`
 - `--limit N`: Limit processing to `N` entries (convenient for quick tests)
